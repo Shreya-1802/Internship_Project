@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "name": "course-feedback-backend",
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/auth/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/api/feedback/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/api/dashboard/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "server.js"
+    }
+  ]
+} 
