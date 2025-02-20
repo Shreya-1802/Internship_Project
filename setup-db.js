@@ -1,4 +1,6 @@
 const mysql = require('mysql2/promise');
+const fs = require('fs').promises;
+const path = require('path');
 require('dotenv').config();
 
 const dbConfig = {
@@ -13,42 +15,62 @@ const dbConfig = {
 };
 
 async function setupDatabase() {
+    let connection;
     try {
-        const connection = await mysql.createConnection(dbConfig);
+        // Create connection
+        connection = await mysql.createConnection(dbConfig);
         console.log('Connected to database');
 
-        // Create courses table if it doesn't exist
-        await connection.execute(`
-            CREATE TABLE IF NOT EXISTS courses (
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                trimester INT NOT NULL,
-                name VARCHAR(255) NOT NULL
-            )
-        `);
-        console.log('Courses table created or already exists');
+        // Check if courses table has data
+        const [existingCourses] = await connection.execute('SELECT COUNT(*) as count FROM courses');
+        
+        if (existingCourses[0].count === 0) {
+            // If table is empty, insert sample courses
+            const courses = [
+                ['Introduction to Programming', 1],
+                ['Data Structures and Algorithms', 1],
+                ['Database Systems', 2],
+                ['Web Development', 2],
+                ['Artificial Intelligence', 3],
+                ['Operating Systems', 2],
+                ['Computer Networks', 2],
+                ['Software Engineering', 3],
+                ['Mobile App Development', 3],
+                ['Cloud Computing', 3]
+            ];
 
-        // Check if courses table is empty
-        const [rows] = await connection.execute('SELECT COUNT(*) as count FROM courses');
-        if (rows[0].count === 0) {
-            // Insert sample courses
-            await connection.execute(`
-                INSERT INTO courses (trimester, name) VALUES 
-                (1, 'Introduction to Computer Science'),
-                (1, 'Data Structures and Algorithms'),
-                (2, 'Database Management'),
-                (2, 'Web Development'),
-                (3, 'Artificial Intelligence')
-            `);
-            console.log('Sample courses inserted');
+            // Insert courses one by one to handle any potential errors
+            for (const [name, trimester] of courses) {
+                try {
+                    await connection.execute(
+                        'INSERT INTO courses (name, trimester) VALUES (?, ?)',
+                        [name, trimester]
+                    );
+                    console.log(`Added course: ${name}`);
+                } catch (err) {
+                    console.warn(`Warning: Could not add course ${name}: ${err.message}`);
+                }
+            }
+            
+            console.log('Sample courses inserted successfully');
         } else {
             console.log('Courses table already has data, skipping sample data insertion');
         }
 
-        await connection.end();
-        console.log('Database setup completed');
+        // Verify courses
+        const [courses] = await connection.execute('SELECT * FROM courses ORDER BY trimester, name');
+        console.log(`\nCurrent courses in database (${courses.length} total):`);
+        courses.forEach(course => {
+            console.log(`- ${course.name} (Trimester ${course.trimester})`);
+        });
+
     } catch (error) {
         console.error('Error setting up database:', error);
         process.exit(1);
+    } finally {
+        if (connection) {
+            await connection.end();
+        }
     }
 }
 

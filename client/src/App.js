@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import FeedbackForm from './pages/FeedbackForm';
+import Courses from './pages/Courses';
 import Features from './pages/Features';
 import About from './pages/About';
 import Contact from './pages/Contact';
@@ -143,6 +144,17 @@ function App() {
                 <>
                   <Navbar />
                   <Dashboard />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses"
+            element={
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <Courses />
                 </>
               </ProtectedRoute>
             }

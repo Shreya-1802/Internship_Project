@@ -12,10 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS courses (
   id INT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(255) NOT NULL,
-  description TEXT,
-  code VARCHAR(50) NOT NULL UNIQUE,
-  ai_analysis TEXT,
-  last_analyzed TIMESTAMP,
+  trimester INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -33,10 +30,15 @@ CREATE TABLE IF NOT EXISTS feedback (
   FOREIGN KEY (course_id) REFERENCES courses(id)
 );
 
--- Insert some sample courses
-INSERT INTO courses (name, description, code) VALUES
-('Introduction to Computer Science', 'Basic concepts of programming and computer science', 'CS101'),
-('Data Structures', 'Advanced data structures and algorithms', 'CS201'),
-('Database Management', 'Introduction to database design and SQL', 'CS301'),
-('Web Development', 'Full-stack web development with modern technologies', 'CS401'),
-('Artificial Intelligence', 'Introduction to AI and machine learning', 'CS501'); 
+-- Insert sample courses
+INSERT INTO courses (name, trimester) VALUES
+('Introduction to Programming', 1),
+('Data Structures and Algorithms', 1),
+('Database Systems', 2),
+('Web Development', 2),
+('Artificial Intelligence', 3),
+('Operating Systems', 2),
+('Computer Networks', 2),
+('Software Engineering', 3),
+('Mobile App Development', 3),
+('Cloud Computing', 3); 

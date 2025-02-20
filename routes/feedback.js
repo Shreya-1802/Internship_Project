@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mysql = require('mysql2/promise');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { courses } = require('./course');
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -24,21 +25,55 @@ const pool = mysql.createPool({
   keepAliveInitialDelay: 10000
 });
 
-// Get all courses
+// Get all courses grouped by trimester
 router.get('/courses', async (req, res) => {
-  let connection;
   try {
-    connection = await pool.getConnection();
-    const [courses] = await connection.execute('SELECT * FROM courses ORDER BY trimester, name');
-    res.json(courses);
+    // Convert courses object to array format expected by frontend
+    const formattedCourses = [];
+    for (const [trimester, trimesterCourses] of Object.entries(courses)) {
+      for (const [courseName, courseInfo] of Object.entries(trimesterCourses)) {
+        formattedCourses.push({
+          id: courseName,
+          name: courseName,
+          trimester: parseInt(trimester.replace('Trimester ', '')),
+          credits: courseInfo.credits,
+          description: courseInfo.description
+        });
+      }
+    }
+    
+    res.json(formattedCourses);
   } catch (error) {
     console.error('Error fetching courses:', error);
     res.status(500).json({ 
       message: 'Error fetching courses',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
-  } finally {
-    if (connection) connection.release();
+  }
+});
+
+// Get courses by trimester
+router.get('/courses/:trimester', async (req, res) => {
+  const { trimester } = req.params;
+  try {
+    const trimesterKey = `Trimester ${trimester}`;
+    const trimesterCourses = courses[trimesterKey] || {};
+    
+    const formattedCourses = Object.entries(trimesterCourses).map(([courseName, courseInfo]) => ({
+      id: courseName,
+      name: courseName,
+      trimester: parseInt(trimester),
+      credits: courseInfo.credits,
+      description: courseInfo.description
+    }));
+    
+    res.json(formattedCourses);
+  } catch (error) {
+    console.error('Error fetching trimester courses:', error);
+    res.status(500).json({ 
+      message: 'Error fetching trimester courses',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

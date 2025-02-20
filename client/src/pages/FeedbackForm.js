@@ -20,6 +20,8 @@ import { API_ENDPOINTS, getAuthHeader } from '../config/api';
 const FeedbackForm = () => {
   const [courses, setCourses] = useState([]);
   const [formFields, setFormFields] = useState([]);
+  const [selectedTrimester, setSelectedTrimester] = useState('');
+  const [trimesterCourses, setTrimesterCourses] = useState([]);
   const [formData, setFormData] = useState({
     courseId: '',
     rating: 0,
@@ -29,6 +31,7 @@ const FeedbackForm = () => {
   const [success, setSuccess] = useState('');
   const user = JSON.parse(localStorage.getItem('user'));
 
+  // Fetch all courses and role-specific fields
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -62,11 +65,27 @@ const FeedbackForm = () => {
     fetchData();
   }, [user.role]);
 
+  // Update trimester courses when trimester changes
+  useEffect(() => {
+    if (selectedTrimester) {
+      const filteredCourses = courses.filter(
+        course => course.trimester === parseInt(selectedTrimester)
+      );
+      setTrimesterCourses(filteredCourses);
+      // Reset course selection when trimester changes
+      setFormData(prev => ({ ...prev, courseId: '' }));
+    }
+  }, [selectedTrimester, courses]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleTrimesterChange = (e) => {
+    setSelectedTrimester(e.target.value);
   };
 
   const handleRatingChange = (name, value) => {
@@ -103,6 +122,7 @@ const FeedbackForm = () => {
         resetData[field.name] = field.type === 'rating' ? 0 : '';
       });
       setFormData(resetData);
+      setSelectedTrimester('');
       
       // Show AI analysis
       if (response.data.analysis) {
@@ -163,6 +183,9 @@ const FeedbackForm = () => {
     }
   };
 
+  // Get unique trimesters from courses
+  const trimesters = [...new Set(courses.map(course => course.trimester))].sort();
+
   return (
     <Container maxWidth="md">
       <Box sx={{ mt: 8 }}>
@@ -181,7 +204,25 @@ const FeedbackForm = () => {
             </Alert>
           )}
           <form onSubmit={handleSubmit}>
+            {/* Trimester Selection */}
             <FormControl fullWidth margin="normal" required>
+              <InputLabel>Trimester</InputLabel>
+              <Select
+                name="trimester"
+                value={selectedTrimester}
+                onChange={handleTrimesterChange}
+                label="Trimester"
+              >
+                {trimesters.map((trimester) => (
+                  <MenuItem key={trimester} value={trimester}>
+                    Trimester {trimester}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Course Selection */}
+            <FormControl fullWidth margin="normal" required disabled={!selectedTrimester}>
               <InputLabel>Course</InputLabel>
               <Select
                 name="courseId"
@@ -189,9 +230,9 @@ const FeedbackForm = () => {
                 onChange={handleChange}
                 label="Course"
               >
-                {courses.map((course) => (
+                {trimesterCourses.map((course) => (
                   <MenuItem key={course.id} value={course.id}>
-                    {course.name}
+                    {course.name} ({course.credits} credits)
                   </MenuItem>
                 ))}
               </Select>

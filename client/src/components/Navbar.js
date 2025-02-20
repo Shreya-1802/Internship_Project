@@ -63,6 +63,11 @@ const Navbar = () => {
           </Button>
         )}
         
+        {/* Show Courses button for all users */}
+        <Button color="inherit" onClick={() => navigate('/courses')}>
+          Courses
+        </Button>
+
         {/* Show Feedback button for all users */}
         <Button color="inherit" onClick={() => navigate('/feedback')}>
           {user.role === 'faculty' ? 'Give Feedback' : 'Feedback Form'}
@@ -90,6 +95,9 @@ const Navbar = () => {
                 Dashboard
               </MenuItem>
             )}
+            <MenuItem onClick={() => { handleClose(); navigate('/courses'); }}>
+              Courses
+            </MenuItem>
             <MenuItem onClick={() => { handleClose(); navigate('/feedback'); }}>
               Feedback Form
             </MenuItem>
