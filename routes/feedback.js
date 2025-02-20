@@ -75,50 +75,41 @@ router.get('/fields/:role', async (req, res) => {
   
   const fields = {
     student: [
-      { name: 'teachingQuality', label: 'Teaching Quality', type: 'rating' },
-      { name: 'practicalApplication', label: 'Practical Application', type: 'rating' },
-      { name: 'courseDifficulty', label: 'Course Difficulty', type: 'select', 
+      { name: 'teaching_quality', label: 'Teaching Effectiveness', type: 'rating' },
+      { name: 'practical_application', label: 'Hands-on Learning Experience', type: 'rating' },
+      { name: 'course_difficulty', label: 'Course Difficulty Level', type: 'select', 
         options: ['Too Easy', 'Easy', 'Moderate', 'Challenging', 'Very Challenging'] },
-      { name: 'contentDepth', label: 'Content Depth', type: 'rating' },
-      { name: 'assignmentQuality', label: 'Assignment Quality', type: 'rating' },
-      { name: 'peerLearning', label: 'Peer Learning', type: 'rating' },
-      { name: 'resourcesQuality', label: 'Resources Quality', type: 'rating' },
-      { name: 'doubtResolution', label: 'Doubt Resolution', type: 'select',
+      { name: 'content_depth', label: 'Depth of Course Content', type: 'rating' },
+      { name: 'resources_quality', label: 'Study Materials Quality', type: 'rating' },
+      { name: 'doubt_resolution', label: 'Doubt Resolution Speed', type: 'select',
         options: ['Very Slow', 'Slow', 'Average', 'Quick', 'Very Quick'] },
-      { name: 'instructorExpertise', label: 'Instructor Expertise', type: 'rating' },
-      { name: 'labEquipment', label: 'Lab Equipment', type: 'rating' },
-      { name: 'coursePace', label: 'Course Pace', type: 'select',
-        options: ['Too Slow', 'Slightly Slow', 'Perfect', 'Slightly Fast', 'Too Fast'] },
-      { name: 'understandingLevel', label: 'Understanding Level', type: 'rating' },
-      { name: 'careerAlignment', label: 'Career Alignment', type: 'rating' }
+      { name: 'instructor_expertise', label: 'Instructor Subject Expertise', type: 'rating' }
     ],
     faculty: [
-      { name: 'labFacilities', label: 'Lab Facilities', type: 'rating' },
-      { name: 'curriculumFlexibility', label: 'Curriculum Flexibility', type: 'rating' },
-      { name: 'classStrength', label: 'Class Strength', type: 'rating' },
-      { name: 'teachingAids', label: 'Teaching Aids', type: 'rating' },
-      { name: 'attendanceRate', label: 'Attendance Rate', type: 'rating' },
-      { name: 'studentProgress', label: 'Student Progress', type: 'rating' },
-      { name: 'studentInteraction', label: 'Student Interaction', type: 'rating' },
-      { name: 'syllabusCoverage', label: 'Syllabus Coverage', type: 'rating' }
+      { name: 'lab_facilities', label: 'Laboratory Infrastructure', type: 'rating' },
+      { name: 'curriculum_flexibility', label: 'Curriculum Adaptability', type: 'rating' },
+      { name: 'teaching_aids', label: 'Teaching Aids Availability', type: 'rating' },
+      { name: 'attendance_rate', label: 'Student Attendance Rate', type: 'rating' },
+      { name: 'student_progress', label: 'Overall Class Progress', type: 'rating' },
+      { name: 'student_interaction', label: 'Student Interaction Level', type: 'rating' }
     ],
     alumni: [
-      { name: 'industryRelevance', label: 'Industry Relevance', type: 'rating' },
-      { name: 'careerGrowth', label: 'Career Growth', type: 'rating' },
-      { name: 'salaryImpact', label: 'Salary Impact', type: 'select',
+      { name: 'industry_relevance', label: 'Industry Relevance', type: 'rating' },
+      { name: 'career_growth', label: 'Career Growth Impact', type: 'rating' },
+      { name: 'salary_impact', label: 'Course Impact on Salary', type: 'select',
         options: ['No Impact', 'Low', 'Moderate', 'High', 'Very High'] },
-      { name: 'knowledgeRetention', label: 'Knowledge Retention', type: 'rating' },
-      { name: 'networkingValue', label: 'Networking Value', type: 'rating' },
-      { name: 'currentRole', label: 'Current Role', type: 'text' },
-      { name: 'courseApplication', label: 'Course Application', type: 'select',
+      { name: 'knowledge_retention', label: 'Knowledge Retention', type: 'rating' },
+      { name: 'networking_value', label: 'Professional Network Value', type: 'rating' },
+      { name: 'current_role', label: 'Current Job Role', type: 'text' },
+      { name: 'course_application', label: 'Course Knowledge Application Frequency', type: 'select',
         options: ['Never', 'Rarely', 'Sometimes', 'Often', 'Very Often'] }
     ],
     parent: [
-      { name: 'academicImprovement', label: 'Academic Improvement', type: 'rating' },
-      { name: 'overallSatisfaction', label: 'Overall Satisfaction', type: 'rating' },
-      { name: 'facultyCommunication', label: 'Faculty Communication', type: 'rating' },
-      { name: 'feeStructure', label: 'Fee Structure', type: 'rating' },
-      { name: 'concerns', label: 'Concerns', type: 'select',
+      { name: 'academic_improvement', label: 'Academic Performance', type: 'rating' },
+      { name: 'overall_satisfaction', label: 'Overall Satisfaction', type: 'rating' },
+      { name: 'faculty_communication', label: 'Faculty Communication', type: 'rating' },
+      { name: 'fee_structure', label: 'Value for Money', type: 'rating' },
+      { name: 'concerns', label: 'Any Concerns?', type: 'select',
         options: ['No Concerns', 'Minor Concerns', 'Moderate Concerns', 'Major Concerns'] }
     ]
   };
@@ -129,6 +120,9 @@ router.get('/fields/:role', async (req, res) => {
 // Submit feedback
 router.post('/submit', async (req, res) => {
   const { userId, courseId, rating, comments, role, ...roleSpecificData } = req.body;
+  
+  role = role.toLowerCase();
+  if(role === 'teacher') role = 'faculty';
   
   let connection;
   try {
@@ -157,19 +151,19 @@ router.post('/submit', async (req, res) => {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             feedbackId,
-            roleSpecificData.teachingQuality,
-            roleSpecificData.practicalApplication,
-            roleSpecificData.courseDifficulty,
-            roleSpecificData.contentDepth,
-            roleSpecificData.assignmentQuality,
-            roleSpecificData.peerLearning,
-            roleSpecificData.resourcesQuality,
-            roleSpecificData.doubtResolution,
-            roleSpecificData.instructorExpertise,
-            roleSpecificData.labEquipment,
-            roleSpecificData.coursePace,
-            roleSpecificData.understandingLevel,
-            roleSpecificData.careerAlignment
+            roleSpecificData.teaching_quality,
+            roleSpecificData.practical_application,
+            roleSpecificData.course_difficulty,
+            roleSpecificData.content_depth,
+            null, // assignment_quality not provided
+            null, // peer_learning not provided
+            roleSpecificData.resources_quality,
+            roleSpecificData.doubt_resolution,
+            roleSpecificData.instructor_expertise,
+            null, // lab_equipment not provided
+            null, // course_pace not provided
+            null, // understanding_level not provided
+            null  // career_alignment not provided
           ]
         );
         break;
@@ -183,14 +177,14 @@ router.post('/submit', async (req, res) => {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             feedbackId,
-            roleSpecificData.labFacilities,
-            roleSpecificData.curriculumFlexibility,
-            roleSpecificData.classStrength,
-            roleSpecificData.teachingAids,
-            roleSpecificData.attendanceRate,
-            roleSpecificData.studentProgress,
-            roleSpecificData.studentInteraction,
-            roleSpecificData.syllabusCoverage
+            roleSpecificData.lab_facilities,
+            roleSpecificData.curriculum_flexibility,
+            null, // class_strength not provided
+            roleSpecificData.teaching_aids,
+            roleSpecificData.attendance_rate,
+            roleSpecificData.student_progress,
+            roleSpecificData.student_interaction,
+            null // syllabus_coverage not provided
           ]
         );
         break;
@@ -203,13 +197,13 @@ router.post('/submit', async (req, res) => {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             feedbackId,
-            roleSpecificData.industryRelevance,
-            roleSpecificData.careerGrowth,
-            roleSpecificData.salaryImpact,
-            roleSpecificData.knowledgeRetention,
-            roleSpecificData.networkingValue,
-            roleSpecificData.currentRole,
-            roleSpecificData.courseApplication
+            roleSpecificData.industry_relevance,
+            roleSpecificData.career_growth,
+            roleSpecificData.salary_impact,
+            roleSpecificData.knowledge_retention,
+            roleSpecificData.networking_value,
+            roleSpecificData.current_role,
+            roleSpecificData.course_application
           ]
         );
         break;
@@ -222,10 +216,10 @@ router.post('/submit', async (req, res) => {
           ) VALUES (?, ?, ?, ?, ?, ?)`,
           [
             feedbackId,
-            roleSpecificData.academicImprovement,
-            roleSpecificData.overallSatisfaction,
-            roleSpecificData.facultyCommunication,
-            roleSpecificData.feeStructure,
+            roleSpecificData.academic_improvement,
+            roleSpecificData.overall_satisfaction,
+            roleSpecificData.faculty_communication,
+            roleSpecificData.fee_structure,
             roleSpecificData.concerns
           ]
         );
