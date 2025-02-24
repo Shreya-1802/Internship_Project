@@ -106,16 +106,41 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server with error handling
+// Start server with error handling and port fallback
 const startServer = async () => {
   try {
     await handleDisconnect();
     
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log('Database connection pool initialized successfully');
-    });
+    const startPort = process.env.PORT || 5000;
+    let currentPort = startPort;
+    let maxAttempts = 10;
+    let server;
+
+    while (maxAttempts > 0) {
+      try {
+        server = app.listen(currentPort);
+        console.log(`Server running on port ${currentPort}`);
+        console.log('Database connection pool initialized successfully');
+        break;
+      } catch (err) {
+        if (err.code === 'EADDRINUSE') {
+          console.log(`Port ${currentPort} is in use, trying port ${currentPort + 1}`);
+          currentPort++;
+          maxAttempts--;
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    if (maxAttempts === 0) {
+      throw new Error('Could not find an available port after multiple attempts');
+    }
+
+    // Update client configuration if port changed
+    if (currentPort !== startPort) {
+      console.log(`Note: Server is running on a different port than default. Please update your client configuration if needed.`);
+    }
 
   } catch (error) {
     console.error('Failed to start server:', error);
