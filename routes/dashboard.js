@@ -24,8 +24,9 @@ router.get('/stats', async (req, res) => {
     const [courseStats] = await connection.execute(`
       SELECT 
         COUNT(*) as total_courses,
-        (SELECT AVG(rating) FROM feedback) as average_rating
+        COALESCE(ROUND(AVG(rating), 1), 0) as average_rating
       FROM courses
+      LEFT JOIN feedback ON courses.id = feedback.course_id
     `);
 
     // Get feedback distribution by stakeholder type
@@ -93,12 +94,12 @@ router.get('/stats', async (req, res) => {
         tf.student_progress, tf.syllabus_coverage
       FROM feedback f
       JOIN courses c ON f.course_id = c.id
-      JOIN users u ON f.stakeholder_id = u.id
+      JOIN users u ON f.user_id = u.id
       LEFT JOIN student_feedback sf ON f.id = sf.feedback_id
       LEFT JOIN alumni_feedback af ON f.id = af.feedback_id
       LEFT JOIN parent_feedback pf ON f.id = pf.feedback_id
       LEFT JOIN teacher_feedback tf ON f.id = tf.feedback_id
-      ORDER BY f.submitted_at DESC
+      ORDER BY f.id DESC
       LIMIT 10
     `);
 

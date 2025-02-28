@@ -183,7 +183,7 @@ const Dashboard = () => {
           <StatCard
             icon={<StarIcon sx={{ color: theme.palette.secondary.main }} />}
             title="Average Rating"
-            value={stats.courseStats.average_rating?.toFixed(1) || 'N/A'}
+            value={Number(stats.courseStats.average_rating || 0).toFixed(1)}
             color="secondary"
           />
         </Grid>
