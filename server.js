@@ -3,6 +3,7 @@ const cors = require('cors');
 const mysql = require('mysql2');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
+const feedbackRoutes = require('./routes/feedback');
 
 const app = express();
 
@@ -93,70 +94,39 @@ app.get('/api/health', async (req, res) => {
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/feedback', require('./routes/feedback'));
+app.use('/api/feedback', feedbackRoutes);
 app.use('/api/dashboard', require('./routes/dashboard'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
+  console.error(err.stack);
   res.status(500).json({ 
-    error: process.env.NODE_ENV === 'production' 
-      ? 'Internal server error' 
-      : err.message 
+    message: 'Something broke!',
+    details: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
-// Start server with error handling and port fallback
-const startServer = async () => {
+// Start server function
+const startServer = async (port) => {
   try {
     await handleDisconnect();
     
-    const startPort = process.env.PORT || 5000;
-    let currentPort = startPort;
-    let maxAttempts = 10;
-    let server;
-
-    while (maxAttempts > 0) {
-      try {
-        server = app.listen(currentPort);
-        console.log(`Server running on port ${currentPort}`);
-        console.log('Database connection pool initialized successfully');
-        break;
-      } catch (err) {
-        if (err.code === 'EADDRINUSE') {
-          console.log(`Port ${currentPort} is in use, trying port ${currentPort + 1}`);
-          currentPort++;
-          maxAttempts--;
-        } else {
-          throw err;
-        }
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    }).on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.log(`Port ${port} is busy, trying ${port + 1}...`);
+        startServer(port + 1);
+      } else {
+        console.error('Server error:', err);
       }
-    }
-
-    if (maxAttempts === 0) {
-      throw new Error('Could not find an available port after multiple attempts');
-    }
-
-    // Update client configuration if port changed
-    if (currentPort !== startPort) {
-      console.log(`Note: Server is running on a different port than default. Please update your client configuration if needed.`);
-    }
-
+    });
   } catch (error) {
     console.error('Failed to start server:', error);
-    // In production (Vercel), we don't want to exit the process
-    if (process.env.NODE_ENV !== 'production') {
-      process.exit(1);
-    }
+    process.exit(1);
   }
 };
 
-// Handle uncaught exceptions without exiting in production
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-  if (process.env.NODE_ENV !== 'production') {
-    process.exit(1);
-  }
-});
-
-startServer(); 
+// Start server on initial port
+const PORT = process.env.PORT || 5000;
+startServer(PORT); 

@@ -1,77 +1,53 @@
 const mysql = require('mysql2/promise');
 const fs = require('fs').promises;
-const path = require('path');
 require('dotenv').config();
 
-const dbConfig = {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    ssl: {
-        rejectUnauthorized: false
-    }
-};
-
 async function setupDatabase() {
-    let connection;
-    try {
-        // Create connection
-        connection = await mysql.createConnection(dbConfig);
-        console.log('Connected to database');
+  let connection;
 
-        // Check if courses table has data
-        const [existingCourses] = await connection.execute('SELECT COUNT(*) as count FROM courses');
-        
-        if (existingCourses[0].count === 0) {
-            // If table is empty, insert sample courses
-            const courses = [
-                ['Introduction to Programming', 1],
-                ['Data Structures and Algorithms', 1],
-                ['Database Systems', 2],
-                ['Web Development', 2],
-                ['Artificial Intelligence', 3],
-                ['Operating Systems', 2],
-                ['Computer Networks', 2],
-                ['Software Engineering', 3],
-                ['Mobile App Development', 3],
-                ['Cloud Computing', 3]
-            ];
+  try {
+    // First connect without database to create it if needed
+    connection = await mysql.createConnection({
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    });
 
-            // Insert courses one by one to handle any potential errors
-            for (const [name, trimester] of courses) {
-                try {
-                    await connection.execute(
-                        'INSERT INTO courses (name, trimester) VALUES (?, ?)',
-                        [name, trimester]
-                    );
-                    console.log(`Added course: ${name}`);
-                } catch (err) {
-                    console.warn(`Warning: Could not add course ${name}: ${err.message}`);
-                }
-            }
-            
-            console.log('Sample courses inserted successfully');
-        } else {
-            console.log('Courses table already has data, skipping sample data insertion');
-        }
+    console.log('Connected to MySQL server');
 
-        // Verify courses
-        const [courses] = await connection.execute('SELECT * FROM courses ORDER BY trimester, name');
-        console.log(`\nCurrent courses in database (${courses.length} total):`);
-        courses.forEach(course => {
-            console.log(`- ${course.name} (Trimester ${course.trimester})`);
-        });
+    // Create database if it doesn't exist
+    await connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`);
+    console.log(`Database ${process.env.DB_NAME} created or already exists`);
 
-    } catch (error) {
-        console.error('Error setting up database:', error);
-        process.exit(1);
-    } finally {
-        if (connection) {
-            await connection.end();
-        }
+    // Switch to the database
+    await connection.query(`USE ${process.env.DB_NAME}`);
+    console.log(`Using database ${process.env.DB_NAME}`);
+
+    // Read and execute schema.sql
+    const schema = await fs.readFile('schema.sql', 'utf8');
+    const statements = schema
+      .split(';')
+      .map(statement => statement.trim())
+      .filter(statement => statement.length > 0);
+
+    for (const statement of statements) {
+      await connection.query(statement);
     }
+    console.log('Database schema created successfully');
+
+    console.log('Database setup completed successfully');
+  } catch (error) {
+    console.error('Error setting up database:', error);
+    process.exit(1);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
 }
 
 setupDatabase();

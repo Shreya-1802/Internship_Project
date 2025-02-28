@@ -39,6 +39,7 @@ const FeedbackForm = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const user = JSON.parse(localStorage.getItem('user'));
 
   // Get trimesters from courses data
@@ -116,6 +117,7 @@ const FeedbackForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     setError('');
     setSuccess('');
     
@@ -152,6 +154,8 @@ const FeedbackForm = () => {
       }
     } catch (err) {
       setError(err.response?.data?.message || 'An error occurred');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -357,9 +361,9 @@ const FeedbackForm = () => {
                       color="primary"
                       size="large"
                       sx={{ mt: 3 }}
-                      disabled={!formData.courseId || !formData.rating}
+                      disabled={!formData.courseId || !formData.rating || submitting}
                     >
-                      Submit Feedback
+                      {submitting ? 'Submitting...' : 'Submit Feedback'}
                     </Button>
                   </form>
                 ) : (

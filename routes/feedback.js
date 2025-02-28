@@ -154,22 +154,121 @@ router.get('/fields/:role', async (req, res) => {
 
 // Submit feedback
 router.post('/submit', async (req, res) => {
-  const { userId, courseId, rating, comments, role, ...roleSpecificData } = req.body;
-  
-  role = role.toLowerCase();
-  if(role === 'teacher') role = 'faculty';
-  
+  let { userId, courseId, rating, comments, role, ...roleSpecificData } = req.body;
   let connection;
+  
   try {
+    // Validate required fields
+    if (!userId || !courseId || !rating || !role) {
+      return res.status(400).json({ 
+        message: 'Missing required fields',
+        details: 'userId, courseId, rating, and role are required'
+      });
+    }
+
+    role = role.toLowerCase();
+    if (role === 'teacher') role = 'faculty';
+
+    // Validate role
+    if (!['student', 'faculty', 'alumni', 'parent'].includes(role)) {
+      return res.status(400).json({ 
+        message: 'Invalid role',
+        details: 'Role must be one of: student, faculty, alumni, parent'
+      });
+    }
+
+    // Extract course code if courseId contains name
+    const courseCode = courseId.includes(' - ') ? courseId.split(' - ')[0].trim() : courseId;
+
+    console.log('Searching for course:', courseCode, 'Full courseId:', courseId);
+
+    // Verify course exists in courses.js
+    let foundCourse = null;
+    for (const [trimester, trimesterCourses] of Object.entries(courses)) {
+      // Try to find the course by full name or code
+      const matchingCourse = Object.entries(trimesterCourses).find(([courseName]) => {
+        // Check if the course name matches exactly
+        if (courseName === courseId) return true;
+        // Check if the course code matches the start of the course name
+        if (courseName.startsWith(courseCode)) return true;
+        // Check if the course name contains the course code
+        if (courseName.includes(courseCode)) return true;
+        return false;
+      });
+      
+      if (matchingCourse) {
+        const [courseName, courseInfo] = matchingCourse;
+        foundCourse = {
+          code: courseCode,
+          name: courseName,
+          ...courseInfo,
+          trimester: parseInt(trimester.replace('Trimester ', ''))
+        };
+        console.log('Found matching course:', courseName);
+        break;
+      }
+    }
+
+    if (!foundCourse) {
+      console.log('Course not found. Available courses:', 
+        Object.entries(courses).map(([trim, courses]) => 
+          `${trim}: ${Object.keys(courses).join(', ')}`
+        ).join('\n')
+      );
+      return res.status(404).json({
+        message: 'Course not found',
+        details: `Course ${courseId} not found in the course list`
+      });
+    }
+
+    console.log('Found course details:', foundCourse);
+
     connection = await pool.getConnection();
     
     // Start transaction
     await connection.beginTransaction();
+
+    // First, check if user exists
+    const [existingUsers] = await connection.execute(
+      'SELECT id FROM users WHERE id = ?',
+      [userId]
+    );
+
+    let dbUserId;
+    if (existingUsers.length === 0) {
+      // User doesn't exist, create new user
+      const [insertUserResult] = await connection.execute(
+        'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+        ['Anonymous User', `user${userId}@example.com`, 'defaultpass', role]
+      );
+      dbUserId = insertUserResult.insertId;
+      console.log('Created new user with ID:', dbUserId);
+    } else {
+      dbUserId = existingUsers[0].id;
+    }
+
+    // Check if course exists in database, if not insert it
+    const [existingCourses] = await connection.execute(
+      'SELECT id FROM courses WHERE code = ?',
+      [foundCourse.code]
+    );
+
+    let dbCourseId;
+    if (existingCourses.length === 0) {
+      // Insert the course into database
+      const [insertResult] = await connection.execute(
+        'INSERT INTO courses (name, code, description) VALUES (?, ?, ?)',
+        [foundCourse.name, foundCourse.code, foundCourse.description || '']
+      );
+      dbCourseId = insertResult.insertId;
+    } else {
+      dbCourseId = existingCourses[0].id;
+    }
     
-    // Insert feedback
+    // Insert feedback using the verified user ID
     const [result] = await connection.execute(
       'INSERT INTO feedback (user_id, course_id, rating, comments, role) VALUES (?, ?, ?, ?, ?)',
-      [userId, courseId, rating, comments, role]
+      [dbUserId, dbCourseId, rating, comments || '', role]
     );
     
     const feedbackId = result.insertId;
@@ -180,25 +279,17 @@ router.post('/submit', async (req, res) => {
         await connection.execute(
           `INSERT INTO student_feedback (
             feedback_id, teaching_quality, practical_application, course_difficulty,
-            content_depth, assignment_quality, peer_learning, resources_quality,
-            doubt_resolution, instructor_expertise, lab_equipment, course_pace,
-            understanding_level, career_alignment
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            content_depth, resources_quality, doubt_resolution, instructor_expertise
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             feedbackId,
-            roleSpecificData.teaching_quality,
-            roleSpecificData.practical_application,
-            roleSpecificData.course_difficulty,
-            roleSpecificData.content_depth,
-            null, // assignment_quality not provided
-            null, // peer_learning not provided
-            roleSpecificData.resources_quality,
-            roleSpecificData.doubt_resolution,
-            roleSpecificData.instructor_expertise,
-            null, // lab_equipment not provided
-            null, // course_pace not provided
-            null, // understanding_level not provided
-            null  // career_alignment not provided
+            roleSpecificData.teaching_quality || null,
+            roleSpecificData.practical_application || null,
+            roleSpecificData.course_difficulty || null,
+            roleSpecificData.content_depth || null,
+            roleSpecificData.resources_quality || null,
+            roleSpecificData.doubt_resolution || null,
+            roleSpecificData.instructor_expertise || null
           ]
         );
         break;
@@ -206,20 +297,19 @@ router.post('/submit', async (req, res) => {
       case 'faculty':
         await connection.execute(
           `INSERT INTO teacher_feedback (
-            feedback_id, lab_facilities, curriculum_flexibility, class_strength,
-            teaching_aids, attendance_rate, student_progress, student_interaction,
-            syllabus_coverage
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            feedback_id, lab_facilities, curriculum_flexibility,
+            teaching_aids, attendance_rate, student_progress, 
+            student_interaction, syllabus_coverage
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             feedbackId,
-            roleSpecificData.lab_facilities,
-            roleSpecificData.curriculum_flexibility,
-            null, // class_strength not provided
-            roleSpecificData.teaching_aids,
-            roleSpecificData.attendance_rate,
-            roleSpecificData.student_progress,
-            roleSpecificData.student_interaction,
-            null // syllabus_coverage not provided
+            roleSpecificData.lab_facilities || null,
+            roleSpecificData.curriculum_flexibility || null,
+            roleSpecificData.teaching_aids || null,
+            roleSpecificData.attendance_rate || null,
+            roleSpecificData.student_progress || null,
+            roleSpecificData.student_interaction || null,
+            roleSpecificData.syllabus_coverage || null
           ]
         );
         break;
@@ -232,13 +322,13 @@ router.post('/submit', async (req, res) => {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             feedbackId,
-            roleSpecificData.industry_relevance,
-            roleSpecificData.career_growth,
-            roleSpecificData.salary_impact,
-            roleSpecificData.knowledge_retention,
-            roleSpecificData.networking_value,
-            roleSpecificData.current_role,
-            roleSpecificData.course_application
+            roleSpecificData.industry_relevance || null,
+            roleSpecificData.career_growth || null,
+            roleSpecificData.salary_impact || null,
+            roleSpecificData.knowledge_retention || null,
+            roleSpecificData.networking_value || null,
+            roleSpecificData.current_role || null,
+            roleSpecificData.course_application || null
           ]
         );
         break;
@@ -251,11 +341,11 @@ router.post('/submit', async (req, res) => {
           ) VALUES (?, ?, ?, ?, ?, ?)`,
           [
             feedbackId,
-            roleSpecificData.academic_improvement,
-            roleSpecificData.overall_satisfaction,
-            roleSpecificData.faculty_communication,
-            roleSpecificData.fee_structure,
-            roleSpecificData.concerns
+            roleSpecificData.academic_improvement || null,
+            roleSpecificData.overall_satisfaction || null,
+            roleSpecificData.faculty_communication || null,
+            roleSpecificData.fee_structure || null,
+            roleSpecificData.concerns || null
           ]
         );
         break;
@@ -265,7 +355,9 @@ router.post('/submit', async (req, res) => {
     await connection.commit();
 
     res.status(201).json({ 
-      message: 'Feedback submitted successfully'
+      message: 'Feedback submitted successfully',
+      feedbackId,
+      course: foundCourse
     });
   } catch (error) {
     if (connection) {
