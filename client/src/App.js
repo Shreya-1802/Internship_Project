@@ -121,22 +121,61 @@ function App() {
       <Router>
         <Layout>
           <Routes>
-            {/* Public Routes */}
+            {/* Public Routes - All with Navbar */}
             <Route 
               path="/" 
-              element={isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Landing />} 
+              element={
+                <>
+                  <Navbar />
+                  {isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Landing />}
+                </>
+              } 
             />
             <Route 
               path="/login" 
-              element={isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Login />} 
+              element={
+                <>
+                  <Navbar />
+                  {isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Login />}
+                </>
+              } 
             />
             <Route 
               path="/register" 
-              element={isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Register />} 
+              element={
+                <>
+                  <Navbar />
+                  {isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Register />}
+                </>
+              } 
             />
-            <Route path="/features" element={<Features />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
+            <Route 
+              path="/features" 
+              element={
+                <>
+                  <Navbar />
+                  <Features />
+                </>
+              } 
+            />
+            <Route 
+              path="/about" 
+              element={
+                <>
+                  <Navbar />
+                  <About />
+                </>
+              } 
+            />
+            <Route 
+              path="/contact" 
+              element={
+                <>
+                  <Navbar />
+                  <Contact />
+                </>
+              } 
+            />
 
             {/* Protected Routes */}
             <Route
