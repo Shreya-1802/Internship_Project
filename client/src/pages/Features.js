@@ -252,8 +252,8 @@ const Features = () => {
           </Grid>
         </Container>
       </Box>
-
-      <Footer />
+{/* 
+      <Footer /> */}
     </Box>
   );
 };

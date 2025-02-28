@@ -366,7 +366,7 @@ const Landing = () => {
         </Container>
       </Box>
 
-      <Footer />
+      {/* <Footer /> */}
     </Box>
   );
 };

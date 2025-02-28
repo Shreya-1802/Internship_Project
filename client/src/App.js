@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import Layout from './components/Layout';
 
 // Pages
 import Landing from './pages/Landing';
@@ -18,6 +18,7 @@ import Contact from './pages/Contact';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
+// Theme configuration
 const theme = createTheme({
   palette: {
     primary: {
@@ -118,62 +119,64 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route 
-            path="/" 
-            element={isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Landing />} 
-          />
-          <Route 
-            path="/login" 
-            element={isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Login />} 
-          />
-          <Route 
-            path="/register" 
-            element={isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Register />} 
-          />
-          <Route path="/features" element={<Features />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
+        <Layout>
+          <Routes>
+            {/* Public Routes */}
+            <Route 
+              path="/" 
+              element={isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Landing />} 
+            />
+            <Route 
+              path="/login" 
+              element={isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Login />} 
+            />
+            <Route 
+              path="/register" 
+              element={isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Register />} 
+            />
+            <Route path="/features" element={<Features />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <>
-                  <Navbar />
-                  <Dashboard />
-                </>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/courses"
-            element={
-              <ProtectedRoute>
-                <>
-                  <Navbar />
-                  <Courses />
-                </>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/feedback"
-            element={
-              <ProtectedRoute>
-                <>
-                  <Navbar />
-                  <FeedbackForm />
-                </>
-              </ProtectedRoute>
-            }
-          />
+            {/* Protected Routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navbar />
+                    <Dashboard />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses"
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navbar />
+                    <Courses />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/feedback"
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navbar />
+                    <FeedbackForm />
+                  </>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Fallback Route */}
-          <Route path="*" element={<Navigate to={getDefaultRoute()} />} />
-        </Routes>
+            {/* Fallback Route */}
+            <Route path="*" element={<Navigate to={getDefaultRoute()} />} />
+          </Routes>
+        </Layout>
       </Router>
     </ThemeProvider>
   );
