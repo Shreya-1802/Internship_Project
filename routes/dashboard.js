@@ -2,16 +2,23 @@ const express = require('express');
 const router = express.Router();
 const mysql = require('mysql2/promise');
 
+// Database connection configuration
+const getDbConfig = () => ({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  ssl: {
+    rejectUnauthorized: false // This allows self-signed certificates
+  }
+});
+
 // Get overall dashboard statistics
 router.get('/stats', async (req, res) => {
+  let connection;
   try {
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME
-    });
+    connection = await mysql.createConnection(getDbConfig());
 
     // Get course stats
     const [courseStats] = await connection.execute(`
@@ -102,23 +109,29 @@ router.get('/stats', async (req, res) => {
       recentFeedback
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Database error:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch dashboard data',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.end();
+      } catch (err) {
+        console.error('Error closing connection:', err);
+      }
+    }
   }
 });
 
 // Get role-specific dashboard data
 router.get('/role/:role', async (req, res) => {
   const { role } = req.params;
+  let connection;
 
   try {
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME
-    });
+    connection = await mysql.createConnection(getDbConfig());
 
     let roleSpecificStats;
     let roleSpecificCourses;
@@ -247,8 +260,19 @@ router.get('/role/:role', async (req, res) => {
       topCoursesByRole: roleSpecificCourses
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Database error:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch role-specific dashboard data',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.end();
+      } catch (err) {
+        console.error('Error closing connection:', err);
+      }
+    }
   }
 });
 

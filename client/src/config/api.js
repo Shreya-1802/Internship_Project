@@ -1,7 +1,6 @@
 // Function to get the API base URL with port fallback
 const getApiBaseUrl = () => {
-  const defaultPort = 5000;
-  const maxPort = 5010; // Try up to port 5010
+  const defaultPort = 5000; // Backend API port
   
   // If REACT_APP_API_URL is set, use that
   if (process.env.REACT_APP_API_URL) {
@@ -10,12 +9,11 @@ const getApiBaseUrl = () => {
 
   // In development, try to find an available port
   if (process.env.NODE_ENV === 'development') {
-    // You can implement port discovery here if needed
-    return 'http://localhost:5000';
+    return `http://localhost:${defaultPort}`;
   }
 
   // Default fallback
-  return 'http://localhost:5000';
+  return `http://localhost:${defaultPort}`;
 };
 
 const API_BASE_URL = getApiBaseUrl();
