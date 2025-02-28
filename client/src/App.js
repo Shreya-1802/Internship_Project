@@ -105,6 +105,22 @@ const theme = createTheme({
   }
 });
 
+// Wrapper component for authenticated pages
+const AuthenticatedLayout = ({ children }) => (
+  <>
+    <Navbar />
+    {children}
+  </>
+);
+
+// Wrapper component for non-authenticated pages (except Landing)
+const NonAuthenticatedLayout = ({ children, showNavbar = true }) => (
+  <>
+    {showNavbar && <Navbar />}
+    {children}
+  </>
+);
+
 function App() {
   const isAuthenticated = !!localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -121,59 +137,67 @@ function App() {
       <Router>
         <Layout>
           <Routes>
-            {/* Public Routes - All with Navbar */}
+            {/* Landing Page - No Navbar */}
             <Route 
               path="/" 
               element={
-                <>
-                  <Navbar />
-                  {isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Landing />}
-                </>
+                isAuthenticated ? (
+                  <Navigate to={getDefaultRoute()} />
+                ) : (
+                  <NonAuthenticatedLayout showNavbar={false}>
+                    <Landing />
+                  </NonAuthenticatedLayout>
+                )
               } 
             />
+
+            {/* Public Routes - With Navbar */}
             <Route 
               path="/login" 
               element={
-                <>
-                  <Navbar />
-                  {isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Login />}
-                </>
+                isAuthenticated ? (
+                  <Navigate to={getDefaultRoute()} />
+                ) : (
+                  <NonAuthenticatedLayout>
+                    <Login />
+                  </NonAuthenticatedLayout>
+                )
               } 
             />
             <Route 
               path="/register" 
               element={
-                <>
-                  <Navbar />
-                  {isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Register />}
-                </>
+                isAuthenticated ? (
+                  <Navigate to={getDefaultRoute()} />
+                ) : (
+                  <NonAuthenticatedLayout>
+                    <Register />
+                  </NonAuthenticatedLayout>
+                )
               } 
             />
             <Route 
               path="/features" 
               element={
-                <>
-                  <Navbar />
+                <NonAuthenticatedLayout>
                   <Features />
-                </>
+                </NonAuthenticatedLayout>
               } 
             />
             <Route 
               path="/about" 
               element={
-                <>
-                  <Navbar />
+                <NonAuthenticatedLayout>
                   <About />
-                </>
+                </NonAuthenticatedLayout>
               } 
             />
             <Route 
               path="/contact" 
               element={
-                <>
-                  <Navbar />
+                <NonAuthenticatedLayout>
                   <Contact />
-                </>
+                </NonAuthenticatedLayout>
               } 
             />
 
@@ -181,11 +205,10 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute>
-                  <>
-                    <Navbar />
+                <ProtectedRoute requireFaculty={true}>
+                  <AuthenticatedLayout>
                     <Dashboard />
-                  </>
+                  </AuthenticatedLayout>
                 </ProtectedRoute>
               }
             />
@@ -193,10 +216,9 @@ function App() {
               path="/courses"
               element={
                 <ProtectedRoute>
-                  <>
-                    <Navbar />
+                  <AuthenticatedLayout>
                     <Courses />
-                  </>
+                  </AuthenticatedLayout>
                 </ProtectedRoute>
               }
             />
@@ -204,10 +226,9 @@ function App() {
               path="/feedback"
               element={
                 <ProtectedRoute>
-                  <>
-                    <Navbar />
+                  <AuthenticatedLayout>
                     <FeedbackForm />
-                  </>
+                  </AuthenticatedLayout>
                 </ProtectedRoute>
               }
             />

@@ -1,12 +1,16 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user'));
+const ProtectedRoute = ({ children, requireFaculty = false }) => {
+  const isAuthenticated = !!localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
 
-  if (!token || !user) {
-    return <Navigate to="/login" replace />;
+  if (requireFaculty && user.role !== 'faculty') {
+    return <Navigate to="/feedback" />;
   }
 
   return children;

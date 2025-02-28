@@ -26,11 +26,12 @@ const Navbar = () => {
   
   const isAuthenticated = !!localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isFaculty = user.role === 'faculty';
 
-  // Define pages based on authentication status
+  // Define pages based on authentication status and user role
   const pages = isAuthenticated
     ? [
-        { title: 'Dashboard', path: '/dashboard' },
+        ...(isFaculty ? [{ title: 'Dashboard', path: '/dashboard' }] : []),
         { title: 'Courses', path: '/courses' },
         { title: 'Feedback', path: '/feedback' }
       ]
