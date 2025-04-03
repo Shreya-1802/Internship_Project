@@ -71,6 +71,27 @@ const Landing = () => {
       avatar: '/images/avatar3.jpg',
       content: 'Finally, a platform that makes it easy to provide meaningful feedback about our courses.',
       rating: 4
+    },
+    {
+      name: 'Dr. Robert Thompson',
+      role: 'Program Director',
+      avatar: '/images/avatar4.jpg',
+      content: 'The analytics capabilities have helped us make data-driven decisions to continuously improve our curriculum.',
+      rating: 5
+    },
+    {
+      name: 'Maria Rodriguez',
+      role: 'Academic Advisor',
+      avatar: '/images/avatar5.jpg',
+      content: 'SmartEd provides invaluable insights that help us better guide students through their academic journey.',
+      rating: 5
+    },
+    {
+      name: 'Jennifer Williams',
+      role: 'Parent Representative',
+      avatar: '/images/avatar6.jpg',
+      content: 'As a parent, I appreciate the transparency and involvement in my child\'s educational experience.',
+      rating: 5
     }
   ];
 
@@ -164,25 +185,42 @@ const Landing = () => {
             <Grid item xs={6} md={3} key={index}>
               <Grow in timeout={1000 + index * 200}>
                 <Paper
-                  elevation={0}
+                  elevation={3}
                   sx={{
-                    p: 3,
+                    p: 4,
                     textAlign: 'center',
-                    backgroundColor: 'transparent',
-                    border: `2px solid ${theme.palette.primary.main}20`
+                    background: `linear-gradient(135deg, ${theme.palette.background.paper}, ${theme.palette.primary.main}15)`,
+                    borderRadius: 2,
+                    transition: 'all 0.3s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: `0 8px 24px ${theme.palette.primary.main}25`,
+                      background: `linear-gradient(135deg, ${theme.palette.background.paper}, ${theme.palette.primary.main}20)`
+                    }
                   }}
                 >
                   <Typography
-                    variant="h3"
+                    variant="h2"
                     sx={{
-                      fontWeight: 700,
-                      color: theme.palette.primary.main,
-                      mb: 1
+                      fontWeight: 800,
+                      background: `-webkit-linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      mb: 2,
+                      letterSpacing: '-0.02em'
                     }}
                   >
                     {stat.value}
                   </Typography>
-                  <Typography color="text.secondary">
+                  <Typography 
+                    variant="h6" 
+                    color="text.secondary"
+                    sx={{ 
+                      fontWeight: 500,
+                      letterSpacing: 1,
+                      opacity: 0.9
+                    }}
+                  >
                     {stat.label}
                   </Typography>
                 </Paper>
@@ -371,4 +409,4 @@ const Landing = () => {
   );
 };
 
-export default Landing; 
+export default Landing;
