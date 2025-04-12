@@ -3,24 +3,67 @@
   <!-- Background -->
   <rect width="500" height="400" fill="#F5F5F5" fill-opacity="0.1"/>
   
-  <!-- Decorative elements -->
-  <circle cx="250" cy="200" r="150" fill="#2196F3" fill-opacity="0.1"/>
-  <circle cx="250" cy="200" r="100" fill="#F50057" fill-opacity="0.1"/>
+  <!-- Main gradient background - matching landing page gradient -->
+  <rect width="500" height="400" fill="url(#paint0_linear)"/>
   
-  <!-- School building icon -->
-  <path d="M250 50L100 150V350H400V150L250 50Z" fill="#2196F3" fill-opacity="0.2"/>
-  <rect x="200" y="250" width="100" height="100" fill="#2196F3" fill-opacity="0.3"/>
-  <rect x="225" y="275" width="50" height="75" fill="white"/>
+  <!-- Course elements - book stack -->
+  <rect x="120" y="180" width="120" height="30" rx="3" fill="#4285F4" stroke="#2A56C6" stroke-width="2"/>
+  <rect x="130" y="150" width="120" height="30" rx="3" fill="#34A853" stroke="#276739" stroke-width="2"/>
+  <rect x="140" y="120" width="120" height="30" rx="3" fill="#FBBC05" stroke="#E37400" stroke-width="2"/>
   
-  <!-- Feedback icons -->
-  <circle cx="150" cy="150" r="30" fill="#F50057" fill-opacity="0.2"/>
-  <circle cx="350" cy="150" r="30" fill="#F50057" fill-opacity="0.2"/>
-  <circle cx="150" cy="250" r="30" fill="#F50057" fill-opacity="0.2"/>
-  <circle cx="350" cy="250" r="30" fill="#F50057" fill-opacity="0.2"/>
+  <!-- Course certificate -->
+  <rect x="100" y="240" width="160" height="100" rx="5" fill="white" stroke="#CCCCCC" stroke-width="2"/>
+  <line x1="120" y1="270" x2="240" y2="270" stroke="#EEEEEE" stroke-width="3"/>
+  <line x1="120" y1="290" x2="240" y2="290" stroke="#EEEEEE" stroke-width="3"/>
+  <line x1="120" y1="310" x2="210" y2="310" stroke="#EEEEEE" stroke-width="3"/>
+  <circle cx="210" cy="280" r="25" fill="#4285F4" fill-opacity="0.2" stroke="#4285F4" stroke-width="1.5"/>
   
-  <!-- Connection lines -->
-  <line x1="150" y1="150" x2="350" y2="150" stroke="#2196F3" stroke-width="2" stroke-dasharray="5,5"/>
-  <line x1="150" y1="250" x2="350" y2="250" stroke="#2196F3" stroke-width="2" stroke-dasharray="5,5"/>
-  <line x1="150" y1="150" x2="150" y2="250" stroke="#2196F3" stroke-width="2" stroke-dasharray="5,5"/>
-  <line x1="350" y1="150" x2="350" y2="250" stroke="#2196F3" stroke-width="2" stroke-dasharray="5,5"/>
-</svg> 
+  <!-- Feedback elements - star ratings -->
+  <g transform="translate(300, 130)">
+    <!-- Rating stars -->
+    <path d="M25,10 L10,10 L18,0 L25,10 Z" fill="#FBBC05"/>
+    <path d="M25,40 L10,40 L18,30 L25,40 Z" fill="#FBBC05"/>
+    <path d="M25,70 L10,70 L18,60 L25,70 Z" fill="#FBBC05"/>
+    <path d="M25,100 L10,100 L18,90 L25,100 Z" fill="#FBBC05"/>
+    <path d="M25,130 L10,130 L18,120 L25,130 Z" fill="#FBBC05"/>
+    
+    <!-- Progress bars -->
+    <rect x="35" y="5" width="100" height="10" rx="5" fill="#EEEEEE"/>
+    <rect x="35" y="5" width="90" height="10" rx="5" fill="#4285F4"/>
+    
+    <rect x="35" y="35" width="100" height="10" rx="5" fill="#EEEEEE"/>
+    <rect x="35" y="35" width="75" height="10" rx="5" fill="#4285F4"/>
+    
+    <rect x="35" y="65" width="100" height="10" rx="5" fill="#EEEEEE"/>
+    <rect x="35" y="65" width="60" height="10" rx="5" fill="#4285F4"/>
+    
+    <rect x="35" y="95" width="100" height="10" rx="5" fill="#EEEEEE"/>
+    <rect x="35" y="95" width="40" height="10" rx="5" fill="#4285F4"/>
+    
+    <rect x="35" y="125" width="100" height="10" rx="5" fill="#EEEEEE"/>
+    <rect x="35" y="125" width="25" height="10" rx="5" fill="#4285F4"/>
+  </g>
+  
+  <!-- Connecting elements - learning path -->
+  <path d="M260,180 C300,180 300,220 340,220" stroke="#EA4335" stroke-width="3" stroke-dasharray="5,5" fill="none"/>
+  <path d="M260,200 C300,200 300,260 340,260" stroke="#34A853" stroke-width="3" stroke-dasharray="5,5" fill="none"/>
+  <circle cx="260" cy="190" r="15" fill="#FBBC05"/>
+  <circle cx="340" cy="240" r="15" fill="#4285F4"/>
+  
+  <!-- User icon at the center -->
+  <circle cx="250" cy="300" r="30" fill="white" stroke="#CCCCCC" stroke-width="2"/>
+  <circle cx="250" cy="285" r="10" fill="#CCCCCC"/>
+  <path d="M230,310 C230,295 270,295 270,310 L270,320 C270,320 230,320 230,320 L230,310 Z" fill="#CCCCCC"/>
+  
+  <!-- Decorative elements - matching site theme -->
+  <circle cx="400" cy="100" r="40" fill="#3f51b5" fill-opacity="0.1"/>
+  <circle cx="100" cy="80" r="30" fill="#f50057" fill-opacity="0.1"/>
+  
+  <!-- Linear gradient definition - matching landing page gradient -->
+  <defs>
+    <linearGradient id="paint0_linear" x1="0" y1="0" x2="500" y2="400" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3f51b515"/>
+      <stop offset="1" stop-color="#f5005715"/>
+    </linearGradient>
+  </defs>
+</svg>
